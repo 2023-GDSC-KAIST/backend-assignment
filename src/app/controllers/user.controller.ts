@@ -1,17 +1,91 @@
 import { NextFunction, Request, Response } from 'express';
-import { User } from '../schemas';
+import { User, UserDocument } from '../schemas';
+import bcrypt from 'bcrypt';
 
-/* Get */
-export async function get(req: Request, res: Response, next: NextFunction) {
-
+/* Get all users */
+export async function getAllUsers(req: Request, res: Response, next: NextFunction) {
+  try {
+    const users: UserDocument[] = await User.find({}, { _id: 1, username: 1 }).exec();
+    res.status(200).json(users);
+  } catch (error) {
+    next(error);
+  }
 }
 
-/* Create */
-export async function create(req: Request, res: Response, next: NextFunction) {
-
+/* Get user by ID */
+export async function getUserById(req: Request, res: Response, next: NextFunction) {
+  try {
+    const id: string = req.params.id;
+    const user: UserDocument | null = await User.findById(id).exec();
+    if (!user) {
+      res.status(404).send(`User with ID ${id} not found`);
+    } else {
+      res.status(200).json(user);
+    }
+  } catch (error) {
+    next(error);
+  }
 }
 
-/* List */
-export async function list(req: Request, res: Response, next: NextFunction) {
+/* Update user by ID */
+export async function updateUserById(req: Request, res: Response, next: NextFunction) {
+  try {
+    const id: string = req.params.id;
+    const updates: any = req.body;
+    const user: UserDocument | null = await User.findByIdAndUpdate(id, updates, { new: true }).exec();
+    if (!user) {
+      res.status(404).send(`User with ID ${id} not found`);
+    } else {
+      res.status(200).json(user);
+    }
+  } catch (error) {
+    next(error);
+  }
+}
 
+/* Delete user by ID */
+export async function deleteUserById(req: Request, res: Response, next: NextFunction) {
+  try {
+    const id: string = req.params.id;
+    const user: UserDocument | null = await User.findByIdAndDelete(id).exec();
+    if (!user) {
+      res.status(404).send(`User with ID ${id} not found`);
+    } else {
+      res.status(200).send(`User with ID ${id} deleted`);
+    }
+  } catch (error) {
+    next(error);
+  }
+}
+
+/* Create new user */
+export async function createUser(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { username, password, name, email }: { username: string; password: string; name: string; email: string } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user: UserDocument = await User.create({ username, password: hashedPassword, name, email });
+    res.status(201).json(user);
+  } catch (error) {
+    next(error);
+  }
+}
+
+/* Login user */
+export async function loginUser(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { username, password }: { username: string; password: string } = req.body;
+    const user: UserDocument | null = await User.findOne({ username }).exec();
+    if (!user) {
+      res.status(401).send('Invalid credentials');
+    } else {
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+      if (isPasswordValid) {
+        res.status(200).json(user);
+      } else {
+        res.status(401).send('Invalid credentials');
+      }
+    }
+  } catch (error) {
+    next(error);
+  }
 }
