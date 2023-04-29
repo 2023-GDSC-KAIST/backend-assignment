@@ -3,16 +3,22 @@ import { UserController } from '../controllers';
 
 const router: Router = express.Router();
 
-router
-  .route('/')
-  /* List All Users */
-  .get(UserController.list)
-  /* Create User */
-  .post(UserController.create);
+/* Get all users */
+router.get('/', UserController.getAllUsers);
 
-router
-  .route('/:id')
-  /* Get User */
-  .get(UserController.get);
+/* Get user by ID */
+router.get('/:id', UserController.getUserById);
+
+/* Update user by ID */
+router.put('/:id', UserController.updateUserById);
+
+/* Delete user by ID */
+router.delete('/:id', UserController.deleteUserById);
+
+/* Create new user */
+router.post('/signup', UserController.createUser);
+
+/* Login user */
+router.post('/login', UserController.loginUser);
 
 export const usersRouter: Router = router;

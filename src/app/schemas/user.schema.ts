@@ -1,26 +1,36 @@
-import mongoose, { Model, Schema } from 'mongoose';
+import mongoose, { Document, Model, Schema } from 'mongoose';
 
-export interface IUser {
+export interface IUser extends Document {
+  username: string;
+  password: string;
+  salt: string;
   name: string;
-  created_at: Date;
+  email: string;
 }
 
 interface UserModel extends Model<IUser> {}
 
+export interface UserDocument extends IUser, Document {}
+
 const UserSchema = new Schema<IUser, UserModel>({
-  name: {
+  username: {
     type: String,
     required: true,
+    unique: true
   },
-  created_at: {
-    type: Date,
-    default: Date.now,
+  password: {
+    type: String,
+    required: true
   },
-});
-
-/* Middlewares */
-UserSchema.pre('save', function (next) {
-  next();
+  name: {
+    type: String,
+    required: true
+  },
+  email: {
+    type: String,
+    required: true,
+    unique: true
+  }
 });
 
 export const User = mongoose.model<IUser, UserModel>('User', UserSchema);

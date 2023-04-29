@@ -28,7 +28,8 @@ export class Application {
     });
 
     mongoose.set('strictQuery', true);
-    mongoose.connect(process.env.DB_URL || `localhost:27017/test`);
+    // mongoose.connect(process.env.DB_URL || `localhost:27017/test`);
+    mongoose.connect(process.env.DB_URL || 'mongodb://localhost/myapp');
   }
 
   private logRequest(req: Request, res: Response, next: NextFunction) {
