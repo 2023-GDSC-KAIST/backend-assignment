@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { User, UserDocument } from '../schemas';
+import bcrypt from 'bcrypt';
 
 /* Get all users */
 export async function getAllUsers(req: Request, res: Response, next: NextFunction) {
@@ -15,7 +16,7 @@ export async function getAllUsers(req: Request, res: Response, next: NextFunctio
 export async function getUserById(req: Request, res: Response, next: NextFunction) {
   try {
     const id: string = req.params.id;
-    const user: UserDocument | null = await User.findById(id).exec();
+    const user: UserDocument | null = await User.findById(id).exec(); // type is UserDocument | null. This is because findById() returns null if no user is found
     if (!user) {
       res.status(404).send(`User with ID ${id} not found`);
     } else {
@@ -61,19 +62,22 @@ export async function deleteUserById(req: Request, res: Response, next: NextFunc
 export async function createUser(req: Request, res: Response, next: NextFunction) {
   try {
     const { username, password, name, email }: { username: string; password: string; name: string; email: string } = req.body;
-    const user: UserDocument = await User.create({ username, password, name, email });
+    const hashedPassword: string = await bcrypt.hash(password, await bcrypt.genSalt());
+    console.log(hashedPassword)
+    const user: UserDocument = await User.create({ username, hashedPassword, name, email });
     res.status(201).json(user);
   } catch (error) {
     next(error);
   }
 }
 
+
 /* Login user */
 export async function loginUser(req: Request, res: Response, next: NextFunction) {
   try {
     const { username, password }: { username: string; password: string } = req.body;
     const user: UserDocument | null = await User.findOne({ username }).exec();
-    if (!user || user.password !== password) {
+    if (!user || !(await bcrypt.compare(password, user.hashedPassword))) {
       res.status(401).send('Invalid credentials');
     } else {
       res.status(200).json(user);
