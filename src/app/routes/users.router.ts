@@ -1,5 +1,6 @@
 import express, { Router } from 'express';
 import { UserController } from '../controllers';
+import { checkToken } from '../middlewares';
 
 const router: Router = express.Router();
 
@@ -12,6 +13,6 @@ router
   .delete(UserController.deleteByUserId);
 
 router.post('/signup', UserController.signup);
-router.post('/login', UserController.login);
+router.post('/login', checkToken, UserController.login);
 
 export const usersRouter: Router = router;
